@@ -49,7 +49,7 @@ export async function initiateSTKPush(phoneMpesa, amount) {
 
   const stkUrl = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
 
-  const callbackUrl = `${process.env.BASE_URL}/api/mpesa/callback`;
+  const callbackUrl = `${process.env.BASE_URL}/payment-callback/callback`;
 
   const payload = {
     BusinessShortCode: process.env.DARAJA_SHORTCODE,
