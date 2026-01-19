@@ -34,30 +34,42 @@ export function getTimestamp() {
 }
 
 // Initiate STK Push
-export async function initiateSTKPush(phoneNumber, amount) {
+export async function initiateSTKPush(phoneMpesa, amount) {
+  // Safety validation
+  if (!/^2547\d{8}$/.test(phoneMpesa)) {
+    throw new Error(`Invalid MPESA phone format: ${phoneMpesa}`);
+  }
+
   const token = await getDarajaToken();
   const timestamp = getTimestamp();
+
   const password = Buffer.from(
     `${process.env.DARAJA_SHORTCODE}${process.env.DARAJA_PASSKEY}${timestamp}`
   ).toString('base64');
 
   const stkUrl = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
-  const callbackUrl = `${process.env.BASE_URL}/payment-callback`;
 
-  const { data } = await axios.post(stkUrl, {
+  const callbackUrl = `${process.env.BASE_URL}/api/mpesa/callback`;
+
+  const payload = {
     BusinessShortCode: process.env.DARAJA_SHORTCODE,
     Password: password,
     Timestamp: timestamp,
     TransactionType: 'CustomerPayBillOnline',
-    Amount: amount,
-    PartyA: phoneNumber.replace('+254', '254'),
+    Amount: Number(amount),
+    PartyA: phoneMpesa,
     PartyB: process.env.DARAJA_SHORTCODE,
-    PhoneNumber: phoneNumber.replace('+254', '254'),
+    PhoneNumber: phoneMpesa,
     CallBackURL: callbackUrl,
     AccountReference: 'QuickAirtime',
     TransactionDesc: 'Airtime Purchase',
-  }, {
-    headers: { Authorization: `Bearer ${token}` },
+  };
+
+  const { data } = await axios.post(stkUrl, payload, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
   });
 
   return data.CheckoutRequestID;

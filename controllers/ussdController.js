@@ -1,14 +1,19 @@
 import Transaction from '../models/Transaction.js';
 import { initiateSTKPush } from '../utils/darajaUtils.js';
 
-// Helper to normalize phone number to E.164 format (+254...)
-const normalizePhoneNumber = (phone) => {
+// For storage / display
+const toE164 = (phone) => {
   if (!phone) return phone;
-  // Africa's Talking sends +254... format already in most cases
   if (phone.startsWith('+254')) return phone;
-  if (phone.startsWith('0')) return '+254' + phone.slice(1);
-  if (phone.startsWith('254')) return '+' + phone;
-  return phone; // fallback
+  if (phone.startsWith('254')) return `+${phone}`;
+  if (phone.startsWith('0')) return `+254${phone.slice(1)}`;
+  return phone;
+};
+
+// For M-PESA STK Push ONLY
+const toMpesaFormat = (phone) => {
+  if (!phone) return phone;
+  return phone.replace('+', ''); // removes +254 → 254
 };
 
 export const handleUSSD = async (req, res) => {
@@ -20,7 +25,8 @@ export const handleUSSD = async (req, res) => {
       return res.status(400).send('END Missing session or phone number');
     }
 
-    const phoneNumber = normalizePhoneNumber(rawPhoneNumber);
+    const phoneE164 = toE164(rawPhoneNumber);
+    const phoneMpesa = toMpesaFormat(phoneE164);
     const userInput = text.trim().split('*').filter(Boolean); // Clean empty parts
     let response = '';
 
@@ -50,23 +56,23 @@ export const handleUSSD = async (req, res) => {
       } else {
         try {
           // Initiate STK Push via Daraja
-          const checkoutRequestID = await initiateSTKPush(phoneNumber, amount);
+          const checkoutRequestID = await initiateSTKPush(phoneMpesa, amount);
 
           // Save transaction record
           await Transaction.create({
             checkoutRequestID,
             sessionId,
-            phoneNumber,
+            phoneNumber: phoneMpesa,
             amount,
             status: 'pending',
           });
 
-          console.log(`STK Push initiated: ${checkoutRequestID} for ${phoneNumber} - KES ${amount}`);
+          console.log(`STK Push initiated: ${checkoutRequestID} for ${phoneMpesa} - KES ${amount}`);
 
           response = `END Payment request sent!\nCheck your phone and approve KES ${amount} to receive airtime instantly.`;
         } catch (error) {
           console.error('STK Push initiation failed:', {
-            phone: phoneNumber,
+            phone: phoneMpesa,
             amount,
             error: error.response?.data || error.message,
           });

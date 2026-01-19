@@ -7,6 +7,7 @@ import paymentRoutes from './routes/paymentRoutes.js';
 
 // Load environment variables as early as possible
 dotenv.config();
+connectDB();  
 
 // Initialize Express app
 const app = express();
