@@ -11,6 +11,18 @@ const transactionSchema = new mongoose.Schema({
     default: 'pending' 
   },
   mpesaReceiptNumber: { type: String },
+    transactionDate: Number,
+    failureReason: String,
+
+    airtimeStatus: {
+      type: String,
+      enum: ['pending', 'sent', 'failed'],
+      default: 'pending',
+    },
+    airtimeSentAt: Date,
+
+    completedAt: Date,
+
 }, { timestamps: true });
 
 export default mongoose.model('Transaction', transactionSchema);

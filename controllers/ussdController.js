@@ -39,7 +39,7 @@ export const handleUSSD = async (req, res) => {
       const choice = userInput[0];
 
       if (choice === '1') {
-        response = `CON Enter amount in KES\n(Min: 20, Max: 1000)`;
+        response = `CON Enter amount in KES\n(Min: 2, Max: 10000)`;
       } else if (choice === '0') {
         response = `END Thank you for using Quick Airtime! Goodbye 👋`;
       } else {
@@ -51,8 +51,8 @@ export const handleUSSD = async (req, res) => {
       const amountStr = userInput[1].trim();
       const amount = parseInt(amountStr, 10);
 
-      if (isNaN(amount) || amount < 20 || amount > 1000) {
-        response = `END Invalid amount.\nPlease enter between KES 20 and 1000.`;
+      if (isNaN(amount) || amount < 2 || amount > 10000) {
+        response = `END Invalid amount.\nPlease enter between KES 2 and 10000.`;
       } else {
         try {
           // Initiate STK Push via Daraja

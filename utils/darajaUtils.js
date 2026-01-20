@@ -10,6 +10,7 @@ const at = AfricasTalking({
 });
 
 export const airtime = at.AIRTIME;
+export const sms = at.SMS;
 
 // Helper: Get Daraja Token
 async function getDarajaToken() {
